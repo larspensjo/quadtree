@@ -111,7 +111,7 @@ func (t *quadtree) init(c1, c2 twof, depth int) {
 }
 
 // Create a Quadtree
-func MakeQuadtree(c1, c2 twof, depth int) *Quadtree {
+func MakeQuadtree(c1, c2 [2]float64, depth int) *Quadtree {
 	var t Quadtree
 	t.init(c1, c2, depth)
 	t.depth = depth
