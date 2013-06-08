@@ -73,7 +73,7 @@ type Quadtree struct {
 // Check if the Quadtree is big enough to contain the given position. This is done by simply making
 // a bigger initial square and moving all objects to the new one. Not a very cheap solution, but
 // it is expected to be done rarely.
-func (t *quadtree) checkExpand(tf twof) {
+func (t *Quadtree) checkExpand(tf twof) {
 	changed := false
 	newCorner1 := t.corner1
 	newCorner2 := t.corner2
