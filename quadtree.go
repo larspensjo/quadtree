@@ -59,7 +59,7 @@ type quadtree struct {
 	center      twof // middle of the square
 	children    [2][2]*quadtree
 	hasChildren bool
-	depth       int
+	depth       int // Depth of this node
 	numObjects  int // Sum of all objects in all children
 	objects     []Object
 }
@@ -111,10 +111,11 @@ func (t *quadtree) init(c1, c2 twof, depth int) {
 }
 
 // Create a Quadtree
-func MakeQuadtree(c1, c2 [2]float64, depth int) *Quadtree {
+// 'c1': The corner with the smaller values
+// 'c2': The corner with the bigger values.
+func MakeQuadtree(c1, c2 [2]float64) *Quadtree {
 	var t Quadtree
-	t.init(c1, c2, depth)
-	t.depth = depth
+	t.init(c1, c2, 0)
 	return &t
 }
 
@@ -122,7 +123,6 @@ func MakeQuadtree(c1, c2 [2]float64, depth int) *Quadtree {
 func makequadtree(c1, c2 twof, depth int) *quadtree {
 	var t quadtree
 	t.init(c1, c2, depth)
-	t.depth = depth
 	return &t
 }
 
