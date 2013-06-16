@@ -49,8 +49,11 @@ func computeDist2(from, to twof) float64 {
 }
 
 // The objects that are managed shall fulfill this interface
+// It is not allowed to change the position of an object inside the tree. It
+// shall only be done by the callback function.
 type Object interface {
 	GetCurrentPosition() [2]float64 // The current coordinate
+	SetPosition([2]float64)         // Callback that requests the position to be updated
 }
 
 type quadtree struct {
@@ -196,7 +199,7 @@ func (t *quadtree) makeChildren() {
 // Destroys the children of this, and moves all objects in its descendants
 // to the "objects" set
 func (t *quadtree) destroyChildren() {
-	//Move all objects in descendants of this to the "objects" set
+	// Move all objects in descendants of this to the "objects" set
 	t.collectObjects(&t.objects)
 
 	for x := 0; x < 2; x++ {
@@ -319,6 +322,7 @@ func (t *Quadtree) Move(o Object, to twof) {
 	t.mutex.RLock()
 	if t.testPresent(o, to) {
 		changed = false
+		o.SetPosition(to)
 	}
 	t.mutex.RUnlock()
 	if changed {
@@ -326,6 +330,7 @@ func (t *Quadtree) Move(o Object, to twof) {
 		t.remove(o, from)
 		t.checkExpand(to)
 		t.add(o, to)
+		o.SetPosition(to)
 		t.mutex.Unlock()
 	}
 }

@@ -11,6 +11,10 @@ func (obj *o) GetCurrentPosition() [2]float64 {
 	return *obj
 }
 
+func (obj *o) SetPosition(newPos [2]float64) {
+	*obj = newPos
+}
+
 func basicTree() *Quadtree {
 	lowerLeft := [2]float64{0, 0}
 	upperRight := [2]float64{1, 1}
@@ -45,4 +49,28 @@ func BenchmarkAdd(t *testing.B) {
 	for _, obj := range list {
 		tree.Add(&obj)
 	}
+}
+
+func BenchmarkMove(t *testing.B) {
+	tree := basicTree()
+	list := make([]o, t.N)
+	for i := range list {
+		list[i][0] = rand.Float64()
+		list[i][1] = rand.Float64()
+	}
+	for i := range list {
+		tree.Add(&list[i])
+	}
+	const delta = 0.001
+	for iter := 0; iter < 100; iter++ {
+		// log.Println("Iter", iter)
+		for i := range list {
+			obj := &list[i]
+			newPos := obj.GetCurrentPosition()
+			newPos[0] += (rand.Float64() - 0.5) * delta
+			newPos[1] += (rand.Float64() - 0.5) * delta
+			tree.Move(obj, newPos)
+		}
+	}
+	t.Log(tree)
 }
