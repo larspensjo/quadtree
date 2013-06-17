@@ -17,7 +17,7 @@ package quadtree
 //
 // This package is used for keeping track of what objects are close to each other.
 // The cost of checking all possible objects would grow with the square of the number of
-// objects, so this package will recursively divide a volume into 2 (in every dimension, giving 8
+// objects, so this package will recursively divide a volume into 2 (in every dimension, giving 4
 // sub cubes) when the number of objects exceeds a certain limit.
 //
 
@@ -33,7 +33,7 @@ import (
 // Allow for higher concentration at some places, and it should still be enough.
 
 const (
-	maxQuadtreeDepth      = 6   // Do not make more levels below this
+	maxQuadtreeDepth      = 8   // Do not make more levels below this
 	minObjectsPerQuadtree = 5   // Lower limit of the number of objects before collapsing
 	maxObjectsPerQuadtree = 10  // Upper limit of the number of objects before expanding
 	expandFactor          = 1.3 // How much the are is expanded when the volume is too small
@@ -200,6 +200,7 @@ func (t *quadtree) makeChildren() {
 // to the "objects" set
 func (t *quadtree) destroyChildren() {
 	// Move all objects in descendants of this to the "objects" set
+	t.objects = make([]Object, 0, t.numObjects)
 	t.collectObjects(&t.objects)
 
 	for x := 0; x < 2; x++ {
