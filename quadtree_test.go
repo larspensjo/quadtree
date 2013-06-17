@@ -1,6 +1,7 @@
 package quadtree
 
 import (
+	"math"
 	"math/rand"
 	"testing"
 )
@@ -39,18 +40,22 @@ func TestInitial(t *testing.T) {
 	}
 }
 
+// Measure time to add objects.
 func BenchmarkAdd(t *testing.B) {
+	t.StopTimer()
 	tree := basicTree()
 	list := make([]o, t.N)
 	for _, obj := range list {
 		obj[0] = rand.Float64()
 		obj[1] = rand.Float64()
 	}
+	t.StartTimer()
 	for _, obj := range list {
 		tree.Add(&obj)
 	}
 }
 
+// Measure time to move objects.
 func BenchmarkMove(t *testing.B) {
 	t.StopTimer()
 	tree := basicTree()
@@ -62,7 +67,7 @@ func BenchmarkMove(t *testing.B) {
 	for i := range list {
 		tree.Add(&list[i])
 	}
-	const delta = 0.001
+	delta := 1 / math.Sqrt(float64(t.N)) // Distance to move
 	t.StartTimer()
 	for i := range list {
 		obj := &list[i]
@@ -71,4 +76,27 @@ func BenchmarkMove(t *testing.B) {
 		newPos[1] += (rand.Float64() - 0.5) * delta
 		tree.Move(obj, newPos)
 	}
+}
+
+// Find all objects near another object
+func BenchmarkFind(t *testing.B) {
+	t.StopTimer()
+	tree := basicTree()
+	list := make([]o, t.N)
+	for i := range list {
+		list[i][0] = rand.Float64()
+		list[i][1] = rand.Float64()
+	}
+	for i := range list {
+		tree.Add(&list[i])
+	}
+	delta := 2 / math.Sqrt(float64(t.N)) // Distance to search
+	t.StartTimer()
+	tot := 0
+	for i := range list {
+		obj := &list[i]
+		result := tree.FindNearObjects(obj.GetCurrentPosition(), delta)
+		tot += len(result)
+	}
+	// t.Log(t.N, "objects: found", float64(tot)/float64(t.N), "on average")
 }

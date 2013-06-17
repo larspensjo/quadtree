@@ -1,4 +1,4 @@
-// Copyright 2012 Lars Pensjö
+// Copyright 2012-1013 Lars Pensjö
 //
 // Ephenation is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -360,7 +360,7 @@ func (t *quadtree) findNearObjects(pos twof, dist float64, objList *[]Object) {
 			*objList = append(*objList, o)
 		}
 	} else {
-		// Traverse all sub squares that are inside the distance. More than one can match.
+		// Traverse all sub squares that are inside the distance.
 		for x := 0; x < 2; x++ {
 			if x == 0 {
 				if pos[0]-dist > t.center[0] {
