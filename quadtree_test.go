@@ -52,6 +52,7 @@ func BenchmarkAdd(t *testing.B) {
 }
 
 func BenchmarkMove(t *testing.B) {
+	t.StopTimer()
 	tree := basicTree()
 	list := make([]o, t.N)
 	for i := range list {
@@ -62,15 +63,12 @@ func BenchmarkMove(t *testing.B) {
 		tree.Add(&list[i])
 	}
 	const delta = 0.001
-	for iter := 0; iter < 100; iter++ {
-		// log.Println("Iter", iter)
-		for i := range list {
-			obj := &list[i]
-			newPos := obj.GetCurrentPosition()
-			newPos[0] += (rand.Float64() - 0.5) * delta
-			newPos[1] += (rand.Float64() - 0.5) * delta
-			tree.Move(obj, newPos)
-		}
+	t.StartTimer()
+	for i := range list {
+		obj := &list[i]
+		newPos := obj.GetCurrentPosition()
+		newPos[0] += (rand.Float64() - 0.5) * delta
+		newPos[1] += (rand.Float64() - 0.5) * delta
+		tree.Move(obj, newPos)
 	}
-	t.Log(tree)
 }

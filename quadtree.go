@@ -57,14 +57,14 @@ type Object interface {
 }
 
 type quadtree struct {
-	corner1     twof // Lower left corner
-	corner2     twof // upper right corner
-	center      twof // middle of the square
-	children    [2][2]*quadtree
-	hasChildren bool
-	depth       int // Depth of this node
-	numObjects  int // Sum of all objects in all children
-	objects     []Object
+	hasChildren bool            // Flag indicating whether the sub tree is used
+	depth       int             // Depth of this node
+	numObjects  int             // Sum of all objects in all children
+	corner1     twof            // Lower left corner
+	corner2     twof            // upper right corner
+	center      twof            // middle of the square
+	children    [2][2]*quadtree // Sub tree used if enough number of objects
+	objects     []Object        // List of objects used if sub tree is not used
 }
 
 // Use MakeQuadtree() to get one.
@@ -344,19 +344,7 @@ func (t *quadtree) collectObjects(os *[]Object) {
 			}
 		}
 	} else {
-		// Add all "objects" into the provided list, if they are not already there
-		for _, o := range t.objects {
-			found := false
-			for _, o2 := range *os {
-				if o2 == o {
-					found = true
-					break
-				}
-			}
-			if !found {
-				*os = append(*os, o)
-			}
-		}
+		*os = append(*os, t.objects...)
 	}
 }
 
