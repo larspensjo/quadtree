@@ -6,14 +6,8 @@ import (
 	"testing"
 )
 
-type o [2]float64
-
-func (obj *o) GetCurrentPosition() [2]float64 {
-	return *obj
-}
-
-func (obj *o) SetPosition(newPos [2]float64) {
-	*obj = newPos
+type o struct {
+	QuadtreePosition
 }
 
 func basicTree() *Quadtree {
@@ -24,12 +18,12 @@ func basicTree() *Quadtree {
 
 func TestInitial(t *testing.T) {
 	tree := basicTree()
-	if !tree.Empty() || tree.hasChildren || tree.numObjects > 0 || len(tree.objects) != 0 {
+	if !tree.Empty() || tree.hasChildren || tree.quadtree.numObjects > 0 || len(tree.objects) != 0 {
 		t.Error("Initial tree not empty")
 	}
 
-	x1 := o{1.0, 2.0}
-	tree.Add(&x1)
+	var x1 o
+	tree.Add(&x1, [2]float64{1.0, 2.0})
 	if tree.numObjects != 1 || tree.Empty() {
 		t.Error("Expected size 1")
 	}
@@ -45,13 +39,14 @@ func BenchmarkAdd(t *testing.B) {
 	t.StopTimer()
 	tree := basicTree()
 	list := make([]o, t.N)
-	for _, obj := range list {
+	positions := make([]twof, t.N)
+	for _, obj := range positions {
 		obj[0] = rand.Float64()
 		obj[1] = rand.Float64()
 	}
 	t.StartTimer()
-	for _, obj := range list {
-		tree.Add(&obj)
+	for i := range list {
+		tree.Add(&list[i], positions[i])
 	}
 }
 
@@ -60,18 +55,19 @@ func BenchmarkMove(t *testing.B) {
 	t.StopTimer()
 	tree := basicTree()
 	list := make([]o, t.N)
+	positions := make([]twof, t.N)
 	for i := range list {
-		list[i][0] = rand.Float64()
-		list[i][1] = rand.Float64()
+		positions[i][0] = rand.Float64()
+		positions[i][1] = rand.Float64()
 	}
 	for i := range list {
-		tree.Add(&list[i])
+		tree.Add(&list[i], positions[i])
 	}
 	delta := 1 / math.Sqrt(float64(t.N)) // Distance to move
 	t.StartTimer()
 	for i := range list {
 		obj := &list[i]
-		newPos := obj.GetCurrentPosition()
+		newPos := obj.getCurrentPosition()
 		newPos[0] += (rand.Float64() - 0.5) * delta
 		newPos[1] += (rand.Float64() - 0.5) * delta
 		tree.Move(obj, newPos)
@@ -83,19 +79,20 @@ func BenchmarkFind(t *testing.B) {
 	t.StopTimer()
 	tree := basicTree()
 	list := make([]o, t.N)
+	positions := make([]twof, t.N)
 	for i := range list {
-		list[i][0] = rand.Float64()
-		list[i][1] = rand.Float64()
+		positions[i][0] = rand.Float64()
+		positions[i][1] = rand.Float64()
 	}
 	for i := range list {
-		tree.Add(&list[i])
+		tree.Add(&list[i], positions[i])
 	}
 	delta := 2 / math.Sqrt(float64(t.N)) // Distance to search
 	t.StartTimer()
 	tot := 0
 	for i := range list {
 		obj := &list[i]
-		result := tree.FindNearObjects(obj.GetCurrentPosition(), delta)
+		result := tree.FindNearObjects(obj.getCurrentPosition(), delta)
 		tot += len(result)
 	}
 	// t.Log(t.N, "objects: found", float64(tot)/float64(t.N), "on average")
