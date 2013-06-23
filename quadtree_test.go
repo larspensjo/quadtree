@@ -1,6 +1,7 @@
 package quadtree
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"testing"
@@ -11,8 +12,8 @@ type o struct {
 }
 
 func basicTree() *Quadtree {
-	lowerLeft := [2]float64{0, 0}
-	upperRight := [2]float64{1, 1}
+	lowerLeft := Twof{0, 0}
+	upperRight := Twof{1, 1}
 	return MakeQuadtree(lowerLeft, upperRight)
 }
 
@@ -23,7 +24,7 @@ func TestInitial(t *testing.T) {
 	}
 
 	var x1 o
-	tree.Add(&x1, [2]float64{1.0, 2.0})
+	tree.Add(&x1, Twof{1.0, 2.0})
 	if tree.numObjects != 1 || tree.Empty() {
 		t.Error("Expected size 1")
 	}
@@ -39,7 +40,7 @@ func BenchmarkAdd(t *testing.B) {
 	t.StopTimer()
 	tree := basicTree()
 	list := make([]o, t.N)
-	positions := make([]twof, t.N)
+	positions := make([]Twof, t.N)
 	for _, obj := range positions {
 		obj[0] = rand.Float64()
 		obj[1] = rand.Float64()
@@ -55,7 +56,7 @@ func BenchmarkMove(t *testing.B) {
 	t.StopTimer()
 	tree := basicTree()
 	list := make([]o, t.N)
-	positions := make([]twof, t.N)
+	positions := make([]Twof, t.N)
 	for i := range list {
 		positions[i][0] = rand.Float64()
 		positions[i][1] = rand.Float64()
@@ -79,7 +80,7 @@ func BenchmarkFind(t *testing.B) {
 	t.StopTimer()
 	tree := basicTree()
 	list := make([]o, t.N)
-	positions := make([]twof, t.N)
+	positions := make([]Twof, t.N)
 	for i := range list {
 		positions[i][0] = rand.Float64()
 		positions[i][1] = rand.Float64()
@@ -96,4 +97,23 @@ func BenchmarkFind(t *testing.B) {
 		tot += len(result)
 	}
 	// t.Log(t.N, "objects: found", float64(tot)/float64(t.N), "on average")
+}
+
+type ball struct {
+	QuadtreePosition
+	// Add other attributes here
+}
+
+func ExampleBalls() {
+	upperLeft := Twof{0, 0}
+	lowerRight := Twof{1, 1}
+	tree := MakeQuadtree(upperLeft, lowerRight)
+	// Create 10 balls and add them to the quadtree
+	for i := 0; i < 10; i++ {
+		var b ball
+		tree.Add(&b, Twof{float64(i) / 10.0, 0})
+	}
+	list := tree.FindNearObjects(Twof{0.5, 0.1}, 0.2)
+	fmt.Println("Found", len(list))
+	// Output: Found 3
 }

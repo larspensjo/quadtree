@@ -23,7 +23,6 @@ import (
 	"sync"
 )
 
-//
 // Depth estimate:
 // 10000 players
 // Divided into 4^6 squares gives 2 players per square.
@@ -36,15 +35,16 @@ const (
 	expandFactor          = 1.3 // How much the are is expanded when the volume is too small
 )
 
-type twof [2]float64
+// Twof is the two dimensional type used as position.
+type Twof [2]float64
 
 // An object that can be stored in a Quadtree must embed this type anonymously.
 type QuadtreePosition struct {
-	pos twof // This is private to Quadtree
+	pos Twof // This is private to Quadtree
 }
 
 // Compute the squared distance between two points
-func computeDist2(from, to twof) float64 {
+func computeDist2(from, to Twof) float64 {
 	dx := from[0] - to[0]
 	dy := from[1] - to[1]
 	return dx*dx + dy*dy
@@ -52,15 +52,15 @@ func computeDist2(from, to twof) float64 {
 
 // The objects that are managed shall fulfill this interface
 type object interface {
-	getCurrentPosition() twof // The current coordinate
-	setPosition(twof)         // Callback that requests the position to be updated
+	getCurrentPosition() Twof // The current coordinate
+	setPosition(Twof)         // Callback that requests the position to be updated
 }
 
-func (p *QuadtreePosition) getCurrentPosition() twof {
+func (p *QuadtreePosition) getCurrentPosition() Twof {
 	return p.pos
 }
 
-func (p *QuadtreePosition) setPosition(n twof) {
+func (p *QuadtreePosition) setPosition(n Twof) {
 	p.pos = n
 }
 
@@ -68,9 +68,9 @@ type quadtree struct {
 	hasChildren bool            // Flag indicating whether the sub tree is used
 	depth       int             // Depth of this node
 	numObjects  int             // Sum of all objects in all children
-	corner1     twof            // Lower left corner
-	corner2     twof            // upper right corner
-	center      twof            // middle of the square
+	corner1     Twof            // Lower left corner
+	corner2     Twof            // upper right corner
+	center      Twof            // middle of the square
 	children    [2][2]*quadtree // Sub tree used if enough number of objects
 	objects     []object        // List of objects used if sub tree is not used
 }
@@ -84,7 +84,7 @@ type Quadtree struct {
 // Check if the Quadtree is big enough to contain the given position. This is done by simply making
 // a bigger initial square and moving all objects to the new one. Not a very cheap solution, but
 // it is expected to be done rarely.
-func (t *Quadtree) checkExpand(tf twof) {
+func (t *Quadtree) checkExpand(tf Twof) {
 	changed := false
 	newCorner1 := t.corner1
 	newCorner2 := t.corner2
@@ -107,31 +107,31 @@ func (t *Quadtree) checkExpand(tf twof) {
 	// Next time an object is added, the tree will expand again.
 }
 
-// Return true if this Quadtree is empty. Used for debugging and testing.
+// Empty returns true if this Quadtree is empty. Used for debugging and testing.
 func (t *Quadtree) Empty() bool {
 	// No need to lock for this operation.
 	return t.numObjects == 0 && !t.hasChildren && len(t.objects) == 0
 }
 
 // Initialize a quadtree
-func (t *quadtree) init(c1, c2 twof, depth int) {
+func (t *quadtree) init(c1, c2 Twof, depth int) {
 	t.corner1 = c1
 	t.corner2 = c2
-	t.center = twof{(c1[0] + c2[0]) / 2, (c1[1] + c2[1]) / 2}
+	t.center = Twof{(c1[0] + c2[0]) / 2, (c1[1] + c2[1]) / 2}
 	t.depth = depth
 }
 
-// Create a Quadtree.
+// MakeQuadtree creates a Quadtree.
 // 'c1' is the corner with the smaller values,
 // 'c2' is the corner with the bigger values.
-func MakeQuadtree(c1, c2 [2]float64) *Quadtree {
+func MakeQuadtree(c1, c2 Twof) *Quadtree {
 	var t Quadtree
 	t.init(c1, c2, 0)
 	return &t
 }
 
 // Local version, making a sub node
-func makequadtree(c1, c2 twof, depth int) *quadtree {
+func makequadtree(c1, c2 Twof, depth int) *quadtree {
 	var t quadtree
 	t.init(c1, c2, depth)
 	return &t
@@ -193,7 +193,7 @@ func (t *quadtree) makeChildren() {
 				maxY = t.corner2[1]
 			}
 
-			t.children[x][y] = makequadtree(twof{minX, minY}, twof{maxX, maxY}, t.depth+1)
+			t.children[x][y] = makequadtree(Twof{minX, minY}, Twof{maxX, maxY}, t.depth+1)
 		}
 	}
 
@@ -253,7 +253,7 @@ func (t *quadtree) remove(o object) {
 	}
 }
 
-//Removes the specified object 'o'.
+// Removes the specified object 'o'.
 func (t *Quadtree) Remove(o object) {
 	t.mutex.Lock()
 	t.remove(o)
@@ -261,7 +261,7 @@ func (t *Quadtree) Remove(o object) {
 }
 
 // Add an object 'o' at position 'c'.
-func (t *Quadtree) Add(o object, c twof) {
+func (t *Quadtree) Add(o object, c Twof) {
 	t.mutex.Lock()
 	o.setPosition(c)
 	t.checkExpand(c)
@@ -284,7 +284,7 @@ func (t *quadtree) add(o object) {
 }
 
 // Test that an object, at the specified position, is already in the quadtree where it should be.
-func (t *quadtree) testPresent(o object, pos twof) bool {
+func (t *quadtree) testPresent(o object, pos Twof) bool {
 	if !t.hasChildren {
 		// There are no children to this tree, which means the object should be in the list of objects.
 		for _, o2 := range t.objects {
@@ -322,8 +322,8 @@ func (t *quadtree) testPresent(o object, pos twof) bool {
 	return false
 }
 
-// Changes the position of an object 'o' to position 'to'.
-func (t *Quadtree) Move(o object, to twof) {
+// Move the position of an object 'o' to position 'to'.
+func (t *Quadtree) Move(o object, to Twof) {
 	// Assume the obect was moved to another part of the quadtree
 	treeChanged := true
 	// Usually, the object will not be moved from one part of the quadtree to another. Do a test if that is
@@ -359,7 +359,7 @@ func (t *quadtree) collectObjects(os *[]object) {
 }
 
 // Find all objects within radius "dist" from "pos".
-func (t *quadtree) findNearObjects(pos twof, dist float64, objList *[]object) {
+func (t *quadtree) findNearObjects(pos Twof, dist float64, objList *[]object) {
 	dist2 := dist * dist
 	if !t.hasChildren {
 		for _, o := range t.objects {
@@ -392,8 +392,8 @@ func (t *quadtree) findNearObjects(pos twof, dist float64, objList *[]object) {
 	}
 }
 
-// Find all objects within radius 'dist' from positin 'pos'.
-func (t *Quadtree) FindNearObjects(pos twof, dist float64) []object {
+// FindNearObjects finds all objects within radius 'dist' from positin 'pos'.
+func (t *Quadtree) FindNearObjects(pos Twof, dist float64) []object {
 	var objList []object
 	t.mutex.RLock()
 	t.findNearObjects(pos, dist, &objList)
