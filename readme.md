@@ -12,7 +12,7 @@ For library details, see [Quadtree documentation](http://godoc.org/github.com/la
 An example taken from the automatic testing:
 ```
 type ball struct {
-	QuadtreePosition
+	Handle
 	// Add other attributes here
 }
 

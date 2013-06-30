@@ -8,7 +8,7 @@ import (
 )
 
 type o struct {
-	QuadtreePosition
+	Handle
 }
 
 func basicTree() *Quadtree {
@@ -100,7 +100,7 @@ func BenchmarkFind(t *testing.B) {
 }
 
 type ball struct {
-	QuadtreePosition
+	Handle
 	// Add other attributes here
 }
 
