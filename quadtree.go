@@ -52,11 +52,12 @@ func computeDist2(from, to Twof) float64 {
 
 // The objects that are managed shall fulfill this interface
 type Object interface {
-	getCurrentPosition() Twof // The current coordinate
-	setPosition(Twof)         // Callback that requests the position to be updated
+	GetQuadtreePosition() Twof // The current coordinate
+	setPosition(Twof)          // Callback that requests the position to be updated
 }
 
-func (p *Handle) getCurrentPosition() Twof {
+// GetQuadtreePosition will get the position managed by Quadtree.
+func (p *Handle) GetQuadtreePosition() Twof {
 	return p.pos
 }
 
@@ -141,7 +142,7 @@ func makequadtree(c1, c2 Twof, depth int) *quadtree {
 // which means an object can only be located in one child.
 func (t *quadtree) fileObject(o Object, add bool) {
 	// Figure out in what child the object belongs
-	c := o.getCurrentPosition()
+	c := o.GetQuadtreePosition()
 	for x := 0; x < 2; x++ {
 		if x == 0 {
 			if c[0] > t.center[0] {
@@ -363,7 +364,7 @@ func (t *quadtree) findNearObjects(pos Twof, dist float64, objList *[]Object) {
 	dist2 := dist * dist
 	if !t.hasChildren {
 		for _, o := range t.objects {
-			if computeDist2(pos, o.getCurrentPosition()) > dist2 {
+			if computeDist2(pos, o.GetQuadtreePosition()) > dist2 {
 				continue // This object was too far away
 			}
 			*objList = append(*objList, o)

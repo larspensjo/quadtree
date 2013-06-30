@@ -68,7 +68,7 @@ func BenchmarkMove(t *testing.B) {
 	t.StartTimer()
 	for i := range list {
 		obj := &list[i]
-		newPos := obj.getCurrentPosition()
+		newPos := obj.GetQuadtreePosition()
 		newPos[0] += (rand.Float64() - 0.5) * delta
 		newPos[1] += (rand.Float64() - 0.5) * delta
 		tree.Move(obj, newPos)
@@ -93,7 +93,7 @@ func BenchmarkFind(t *testing.B) {
 	tot := 0
 	for i := range list {
 		obj := &list[i]
-		result := tree.FindNearObjects(obj.getCurrentPosition(), delta)
+		result := tree.FindNearObjects(obj.GetQuadtreePosition(), delta)
 		tot += len(result)
 	}
 	// t.Log(t.N, "objects: found", float64(tot)/float64(t.N), "on average")
